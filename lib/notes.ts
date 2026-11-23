@@ -18,7 +18,6 @@ type NoteRow = {
   updated_at: string;
 };
 
-// Builds a plain object, which is also what you can pass to a client component.
 const toNote = (row: NoteRow): Note => ({
   id: row.id,
   title: row.title,
@@ -47,8 +46,10 @@ export function updateNote(id: string, title: string, body: string) {
   getDb()
     .prepare('UPDATE notes SET title = ?, body = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
     .run(title, body, id);
+  getDb().prepare('DELETE FROM translations WHERE note_id = ?').run(id);
 }
 
 export function deleteNote(id: string) {
+  getDb().prepare('DELETE FROM translations WHERE note_id = ?').run(id);
   getDb().prepare('DELETE FROM notes WHERE id = ?').run(id);
 }

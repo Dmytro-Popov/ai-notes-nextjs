@@ -3,14 +3,12 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { sampleNotes } from '@/data/sample-notes';
 
-// Keeping the connection on globalThis means there's only one, even though
-// Next.js can load this file more than once.
 const store = globalThis as typeof globalThis & { aiNotesDb?: DatabaseSync };
 
 function openDatabase() {
   const db = new DatabaseSync(path.join(process.cwd(), 'data', 'ai-notes.db'), { timeout: 5000 });
+  db.exec('PRAGMA foreign_keys = ON');
 
-  // This only runs when the connection opens, so restart the app after you add a table.
   db.exec(`
     CREATE TABLE IF NOT EXISTS notes (
       id TEXT PRIMARY KEY,
@@ -19,10 +17,14 @@ function openDatabase() {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS translations (
+      note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+      language TEXT NOT NULL,
+      translation TEXT NOT NULL,
+      PRIMARY KEY (note_id, language)
+    );
   `);
 
-  // Add the sample notes once, to a new database. user_version is a number
-  // SQLite keeps in the file for us to use, and it starts at 0.
   const { user_version } = db.prepare('PRAGMA user_version').get() as { user_version: number };
   if (user_version === 0) {
     const insert = db.prepare('INSERT INTO notes (id, title, body) VALUES (?, ?, ?)');

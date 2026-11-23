@@ -1,8 +1,7 @@
 import type { Note } from '@/lib/notes'
 import { Summary } from '@/components/summary'
+import { Translation } from './translation'
 
-// Your AI features go here. This file runs on the server, and any part that
-// needs the browser goes in a client component of its own.
 export function AiTools({ note }: { note: Note }) {
   return (
     <section
@@ -12,6 +11,7 @@ export function AiTools({ note }: { note: Note }) {
       <h2 className="text-lg font-medium">AI tools</h2>
       <div className="mt-2 text-sm text-slate-600">
         <Summary noteId={note.id} />
+        <Translation noteId={note.id} />
       </div>
     </section>
   )
